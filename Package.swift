@@ -5,6 +5,12 @@ import PackageDescription
 
 let package = Package(
     name: "macdb",
+    platforms: [
+        .macOS(.v10_15)
+    ],
+    products: [
+        .executable(name: "macdb", targets: ["macdb"]),
+    ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
@@ -18,5 +24,8 @@ let package = Package(
         .testTarget(
             name: "macdbTests",
             dependencies: ["macdb"]),
+    ],
+    swiftLanguageVersions: [
+        .v5
     ]
 )
