@@ -1,50 +1,30 @@
 import Foundation
 
-protocol WindowWatcherDelegate: AnyObject {
+class WatchToken {
     
-    func windowWatcher(_ watcher: WindowWatcher, didCreate image: CGImage)
-    // TODO: updated following methods for error reason and other metadata
-    func windowWatcherDidFailToCreateImage(_ watcher: WindowWatcher)
+    private let timer: Timer
     
-}
-
-class WindowWatcher {
+    init(timer: Timer) {
+        self.timer = timer
+    }
     
-    let windowID: CGWindowID
-    // http://www.russbishop.net/the-law
-    private var isWatchinglock: UnsafeMutablePointer<os_unfair_lock>
-    weak var delegate: WindowWatcherDelegate?
+    deinit {
+        timer.invalidate()
+    }
     
-    init(windowID: CGWindowID) {
-        self.windowID = windowID
-        isWatchinglock = UnsafeMutablePointer<os_unfair_lock>.allocate(capacity: 1)
-        isWatchinglock.initialize(to: os_unfair_lock())
+    func cancel() {
+        timer.invalidate()
     }
     
 }
 
-extension WindowWatcher {
-    
-    func startWatching(interval: TimeInterval, queue: DispatchQueue = .main) {
-        guard let delegate = delegate else {
-            return
-        }
-        
-        if let windowImage = CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, .boundsIgnoreFraming) {
-            delegate.windowWatcher(self, didCreate: windowImage)
-        } else {
-            delegate.windowWatcherDidFailToCreateImage(self)
-        }
-        
-        queue.asyncAfter(wallDeadline: .now() + interval) { [weak self] in
-            self?.startWatching(interval: interval, queue: queue)
-        }
+func watch(windowID: CGWindowID,
+           timeInterval: TimeInterval,
+           onCreateImage: @escaping (CGImage?) -> Void) -> WatchToken {
+    let timer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { _ in
+        onCreateImage(CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, .boundsIgnoreFraming))
     }
-    
-    func stopWatching() {
-        
-    }
-    
+    return WatchToken(timer: timer)
 }
 
 // TODO: eventually this will be replaced by arguments coming in over grpc. It will also be expanded to request per PID
@@ -68,31 +48,19 @@ guard let windowID = windowInfoList
         exit(1)
 }
 
-class WriteToFileDelegate: WindowWatcherDelegate {
-    
-    func windowWatcher(_ watcher: WindowWatcher, didCreate image: CGImage) {
-        let mutableData = NSMutableData()
-        let dest = CGImageDestinationCreateWithData(mutableData, kUTTypeJPEG, 1, nil)
-        CGImageDestinationAddImage(dest!, image, nil)
-        if CGImageDestinationFinalize(dest!) {
-            print("Successfully converted to JPEG")
-        }
-        
-        mutableData.write(toFile: "/Users/jjgp/Downloads/\(DispatchWallTime.now().rawValue).jpg", atomically: true)
+// TODO: need to do image comparison a la https://github.com/facebookarchive/ios-snapshot-test-case/blob/master/FBSnapshotTestCase/Categories/UIImage%2BCompare.m
+let token = watch(windowID: windowID, timeInterval: 1 / 5) { image in
+    let mutableData = NSMutableData()
+    let dest = CGImageDestinationCreateWithData(mutableData, kUTTypeJPEG, 1, nil)
+    CGImageDestinationAddImage(dest!, image!, nil)
+    if CGImageDestinationFinalize(dest!) {
+        print("Successfully converted to JPEG")
     }
-    
-    func windowWatcherDidFailToCreateImage(_ watcher: WindowWatcher) {}
-    
+    mutableData.write(toFile: "/Users/jjgp/Downloads/\(DispatchWallTime.now().rawValue).jpg", atomically: true)
 }
 
-// TODO: need to do image comparison a la https://github.com/facebookarchive/ios-snapshot-test-case/blob/master/FBSnapshotTestCase/Categories/UIImage%2BCompare.m
-let watcher = WindowWatcher(windowID: windowID)
-let delegate = WriteToFileDelegate()
-watcher.delegate = delegate
-watcher.startWatching(interval: 1 / 5)
-
-
 signal(SIGINT) { _ in
+    token.cancel()
     exit(0)
 }
 
