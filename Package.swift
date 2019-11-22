@@ -13,8 +13,7 @@ let package = Package(
         .executable(name: "macdb", targets: ["macdb"]),
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
+        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0-alpha.7")
     ],
     targets: [
         .target(
@@ -22,7 +21,7 @@ let package = Package(
             dependencies: []),
         .target(
             name: "macdb",
-            dependencies: ["Core"]),
+            dependencies: ["Core", "GRPC"]),
         .testTarget(
             name: "macdbTests",
             dependencies: ["macdb"]),
