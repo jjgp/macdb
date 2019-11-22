@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+service MacDB {
+    rpc WatchWindow(WindowInfo) returns (stream Window) {}
+}
+
+message WindowInfo {
+    string name = 1;
+}
+
+message Window {
+    bytes image = 1;
+}
