@@ -9,5 +9,5 @@ message WindowInfo {
 }
 
 message Window {
-    bytes image = 1;
+    string image = 1;
 }
