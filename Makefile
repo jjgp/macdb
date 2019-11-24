@@ -17,7 +17,7 @@ PROTOC_GEN_GRPC_SWIFT=bin/protoc-gen-grpc-swift
 		--grpc-swift_opt=Visibility=Public \
 		--grpc-swift_out=$(dir $<)
 
-MACDB_PROTO=Sources/macdb/macdb.proto
+MACDB_PROTO=Sources/macdb/Model/macdb.proto
 MACDB_PB=$(MACDB_PROTO:.proto=.pb.swift)
 MACDB_GRPC=$(MACDB_PROTO:.proto=.grpc.swift)
 

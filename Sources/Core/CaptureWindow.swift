@@ -1,6 +1,6 @@
 import Foundation
 
-public class WatchWindowToken {
+public class CaptureWindowToken {
     
     private let timer: Timer
     
@@ -18,11 +18,11 @@ public class WatchWindowToken {
     
 }
 
-public func watchWindow(windowID: CGWindowID,
-                        timeInterval: TimeInterval,
-                        onCreateImage: @escaping (CGImage?) -> Void) -> WatchWindowToken {
+public func captureWindow(windowID: CGWindowID,
+                          timeInterval: TimeInterval,
+                          onCreateImage: @escaping (CGImage?) -> Void) -> CaptureWindowToken {
     let timer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { _ in
         onCreateImage(CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, .boundsIgnoreFraming))
     }
-    return WatchWindowToken(timer: timer)
+    return CaptureWindowToken(timer: timer)
 }

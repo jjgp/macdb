@@ -27,16 +27,16 @@ import NIOHTTP1
 import SwiftProtobuf
 
 
-/// Usage: instantiate MacDBServiceClient, then call methods of this protocol to make API calls.
-public protocol MacDBService {
-  func watchWindow(_ request: WindowInfo, callOptions: CallOptions?, handler: @escaping (Window) -> Void) -> ServerStreamingCall<WindowInfo, Window>
+/// Usage: instantiate MacDB_WindowServiceClient, then call methods of this protocol to make API calls.
+public protocol MacDB_WindowService {
+  func capture(callOptions: CallOptions?, handler: @escaping (MacDB_WindowCapture) -> Void) -> BidirectionalStreamingCall<MacDB_WindowInfo, MacDB_WindowCapture>
 }
 
-public final class MacDBServiceClient: GRPCClient, MacDBService {
+public final class MacDB_WindowServiceClient: GRPCClient, MacDB_WindowService {
   public let connection: ClientConnection
   public var defaultCallOptions: CallOptions
 
-  /// Creates a client for the MacDB service.
+  /// Creates a client for the MacDB.Window service.
   ///
   /// - Parameters:
   ///   - connection: `ClientConnection` to the service host.
@@ -46,39 +46,38 @@ public final class MacDBServiceClient: GRPCClient, MacDBService {
     self.defaultCallOptions = defaultCallOptions
   }
 
-  /// Asynchronous server-streaming call to WatchWindow.
+  /// Asynchronous bidirectional-streaming call to Capture.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
   ///
   /// - Parameters:
-  ///   - request: Request to send to WatchWindow.
   ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
   ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
-  public func watchWindow(_ request: WindowInfo, callOptions: CallOptions? = nil, handler: @escaping (Window) -> Void) -> ServerStreamingCall<WindowInfo, Window> {
-    return self.makeServerStreamingCall(path: "/MacDB/WatchWindow",
-                                        request: request,
-                                        callOptions: callOptions ?? self.defaultCallOptions,
-                                        handler: handler)
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
+  public func capture(callOptions: CallOptions? = nil, handler: @escaping (MacDB_WindowCapture) -> Void) -> BidirectionalStreamingCall<MacDB_WindowInfo, MacDB_WindowCapture> {
+    return self.makeBidirectionalStreamingCall(path: "/MacDB.Window/Capture",
+                                               callOptions: callOptions ?? self.defaultCallOptions,
+                                               handler: handler)
   }
 
 }
 
 /// To build a server, implement a class that conforms to this protocol.
-public protocol MacDBProvider: CallHandlerProvider {
-  func watchWindow(request: WindowInfo, context: StreamingResponseCallContext<Window>) -> EventLoopFuture<GRPCStatus>
+public protocol MacDB_WindowProvider: CallHandlerProvider {
+  func capture(context: StreamingResponseCallContext<MacDB_WindowCapture>) -> EventLoopFuture<(StreamEvent<MacDB_WindowInfo>) -> Void>
 }
 
-extension MacDBProvider {
-  public var serviceName: String { return "MacDB" }
+extension MacDB_WindowProvider {
+  public var serviceName: String { return "MacDB.Window" }
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
   public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
-    case "WatchWindow":
-      return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
-        return { request in
-          self.watchWindow(request: request, context: context)
-        }
+    case "Capture":
+      return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+        return self.capture(context: context)
       }
 
     default: return nil

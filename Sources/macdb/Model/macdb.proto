@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package MacDB;
+
+service Window {
+    rpc Capture (stream WindowInfo) returns (stream WindowCapture) {}
+}
+
+message WindowInfo {
+    string name = 1;
+}
+
+message WindowCapture {
+    string image = 1;
+}

@@ -19,7 +19,7 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
-public struct WindowInfo {
+public struct MacDB_WindowInfo {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -31,7 +31,7 @@ public struct WindowInfo {
   public init() {}
 }
 
-public struct Window {
+public struct MacDB_WindowCapture {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -45,8 +45,10 @@ public struct Window {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-extension WindowInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "WindowInfo"
+fileprivate let _protobuf_package = "MacDB"
+
+extension MacDB_WindowInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".WindowInfo"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "name"),
   ]
@@ -67,15 +69,15 @@ extension WindowInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: WindowInfo, rhs: WindowInfo) -> Bool {
+  public static func ==(lhs: MacDB_WindowInfo, rhs: MacDB_WindowInfo) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-extension Window: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "Window"
+extension MacDB_WindowCapture: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".WindowCapture"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "image"),
   ]
@@ -96,7 +98,7 @@ extension Window: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Window, rhs: Window) -> Bool {
+  public static func ==(lhs: MacDB_WindowCapture, rhs: MacDB_WindowCapture) -> Bool {
     if lhs.image != rhs.image {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
