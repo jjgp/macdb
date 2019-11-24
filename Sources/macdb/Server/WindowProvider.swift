@@ -6,6 +6,7 @@ import NIO
 
 class WindowProvider: MacDB_WindowProvider {
     
+    // TODO: instead use RepeatedTask
     static var previousImage: CGImage?
     static var token: CaptureWindowToken?
     
