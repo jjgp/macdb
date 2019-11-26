@@ -42,7 +42,7 @@ let windoInfo: MacDB_WindowInfo = .with {
 }
 _ = call.sendMessage(windoInfo)
 
-DispatchQueue.main.asyncAfter(wallDeadline: .now() + 5) {
+DispatchQueue.main.asyncAfter(wallDeadline: .now() + 60) {
     call.sendEnd()
 }
 

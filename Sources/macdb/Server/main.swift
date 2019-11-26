@@ -21,8 +21,6 @@ server.map {
   print("server started on port \(address!.port!)")
 }
 
-_ = server.flatMap {
+_ = try server.flatMap {
   $0.onClose
-}
-
-RunLoop.main.run()
+}.wait()
