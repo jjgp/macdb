@@ -11,34 +11,12 @@ class WindowProvider: MacDB_WindowProvider {
         context: StreamingResponseCallContext<MacDB_WindowCapture>
     ) -> EventLoopFuture<(StreamEvent<MacDB_WindowInfo>) -> Void> {
         var task: RepeatedTask?
-        func startWindowCaptureTask(for windowInfo: MacDB_WindowInfo) {
-            // TODO: documnenting comment on these guards!
-            guard let windowInfoList = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) as? [[CFString: Any]],
-                windowInfoList.count > 0 else {
-                    context.statusPromise.fail(GRPCStatus.processingError)
-                    return
-            }
-            
-            guard windowInfoList.first!.keys.contains(kCGWindowName) else {
-                context.statusPromise.fail(GRPCStatus.processingError)
-                return
-            }
-            
-            guard let windowID = windowInfoList
-                .first(where: { $0[kCGWindowName] as? String == windowInfo.name })
-                .flatMap({ $0[kCGWindowNumber] as? CGWindowID }) else {
-                    context.statusPromise.fail(GRPCStatus.processingError)
-                    return
-            }
-            
-            task = context.windowCaptureTask(for: windowID)
-        }
         
         return context.eventLoop.makeSucceededFuture({ event in
             task?.cancel()
             switch event {
             case .message(let windowInfo):
-                startWindowCaptureTask(for: windowInfo)
+                task = context.startWindowCaptureTask(for: windowInfo)
             case .end:
                 context.statusPromise.succeed(.ok)
             }
@@ -49,7 +27,30 @@ class WindowProvider: MacDB_WindowProvider {
 
 private extension StreamingResponseCallContext where ResponseMessage == MacDB_WindowCapture {
     
-    func windowCaptureTask(for windowID: CGWindowID) -> RepeatedTask {
+    func startWindowCaptureTask(for windowInfo: MacDB_WindowInfo) -> RepeatedTask? {
+        // TODO: documnenting comment on these guards!
+        guard let windowInfoList = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) as? [[CFString: Any]],
+            windowInfoList.count > 0 else {
+                statusPromise.fail(GRPCStatus.processingError)
+                return nil
+        }
+        
+        guard windowInfoList.first!.keys.contains(kCGWindowName) else {
+            statusPromise.fail(GRPCStatus.processingError)
+            return nil
+        }
+        
+        guard let windowID = windowInfoList
+            .first(where: { $0[kCGWindowName] as? String == windowInfo.name })
+            .flatMap({ $0[kCGWindowNumber] as? CGWindowID }) else {
+                statusPromise.fail(GRPCStatus.processingError)
+                return nil
+        }
+        
+        return windowCaptureTask(for: windowID)
+    }
+    
+    private func windowCaptureTask(for windowID: CGWindowID) -> RepeatedTask {
         var previousImage: CGImage?
         func repeatedTask(_ task: RepeatedTask) {
             let image = CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, .boundsIgnoreFraming)
@@ -70,6 +71,7 @@ private extension StreamingResponseCallContext where ResponseMessage == MacDB_Wi
                         $0.image = mutableData.base64EncodedString()
                     }
                 ).recover {
+                    // TODO: hopefully this is can be replaced by error propagation in the StreamEvent type
                     if case ChannelError.ioOnClosedChannel = $0 {
                         task.cancel()
                     }
