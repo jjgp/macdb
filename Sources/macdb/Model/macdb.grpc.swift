@@ -27,45 +27,9 @@ import NIOHTTP1
 import SwiftProtobuf
 
 
-/// Usage: instantiate MacDB_WindowServiceClient, then call methods of this protocol to make API calls.
-public protocol MacDB_WindowService {
-  func capture(callOptions: CallOptions?, handler: @escaping (MacDB_WindowCapture) -> Void) -> BidirectionalStreamingCall<MacDB_WindowInfo, MacDB_WindowCapture>
-}
-
-public final class MacDB_WindowServiceClient: GRPCClient, MacDB_WindowService {
-  public let connection: ClientConnection
-  public var defaultCallOptions: CallOptions
-
-  /// Creates a client for the MacDB.Window service.
-  ///
-  /// - Parameters:
-  ///   - connection: `ClientConnection` to the service host.
-  ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
-  public init(connection: ClientConnection, defaultCallOptions: CallOptions = CallOptions()) {
-    self.connection = connection
-    self.defaultCallOptions = defaultCallOptions
-  }
-
-  /// Asynchronous bidirectional-streaming call to Capture.
-  ///
-  /// Callers should use the `send` method on the returned object to send messages
-  /// to the server. The caller should send an `.end` after the final message has been sent.
-  ///
-  /// - Parameters:
-  ///   - callOptions: Call options; `self.defaultCallOptions` is used if `nil`.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
-  public func capture(callOptions: CallOptions? = nil, handler: @escaping (MacDB_WindowCapture) -> Void) -> BidirectionalStreamingCall<MacDB_WindowInfo, MacDB_WindowCapture> {
-    return self.makeBidirectionalStreamingCall(path: "/MacDB.Window/Capture",
-                                               callOptions: callOptions ?? self.defaultCallOptions,
-                                               handler: handler)
-  }
-
-}
-
 /// To build a server, implement a class that conforms to this protocol.
 public protocol MacDB_WindowProvider: CallHandlerProvider {
-  func capture(context: StreamingResponseCallContext<MacDB_WindowCapture>) -> EventLoopFuture<(StreamEvent<MacDB_WindowInfo>) -> Void>
+  func capture(request: MacDB_WindowInfo, context: StreamingResponseCallContext<MacDB_WindowCapture>) -> EventLoopFuture<GRPCStatus>
 }
 
 extension MacDB_WindowProvider {
@@ -76,8 +40,10 @@ extension MacDB_WindowProvider {
   public func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
     switch methodName {
     case "Capture":
-      return BidirectionalStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
-        return self.capture(context: context)
+      return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+        return { request in
+          self.capture(request: request, context: context)
+        }
       }
 
     default: return nil

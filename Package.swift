@@ -21,14 +21,7 @@ let package = Package(
     targets: [
         .target(
             name: "Core",
-            dependencies: []),
-        .target(
-            name: "MacDBClient",
-            dependencies: [
-                "GRPC",
-                "MacDBModel"
-            ],
-            path: "Sources/macdb/Client"
+            dependencies: []
         ),
         .target(
             name: "MacDBModel",

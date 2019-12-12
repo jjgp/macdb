@@ -3,7 +3,7 @@ syntax = "proto3";
 package MacDB;
 
 service Window {
-    rpc Capture (stream WindowInfo) returns (stream WindowCapture) {}
+    rpc Capture (WindowInfo) returns (stream WindowCapture) {}
 }
 
 message WindowInfo {

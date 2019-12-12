@@ -9,7 +9,7 @@ defer {
 }
 
 let configuration = Server.Configuration(
-  target: .hostAndPort("localhost", 0),
+  target: .hostAndPort("0.0.0.0", 9090),
   eventLoopGroup: group,
   serviceProviders: [WindowProvider()]
 )

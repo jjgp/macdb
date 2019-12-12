@@ -6,21 +6,16 @@ import NIO
 
 class WindowProvider: MacDB_WindowProvider {
     
-    // TODO: more meaningfull GRPCStatus Errors
+    var task: RepeatedTask?
+    
     func capture(
+        request: MacDB_WindowInfo,
         context: StreamingResponseCallContext<MacDB_WindowCapture>
-    ) -> EventLoopFuture<(StreamEvent<MacDB_WindowInfo>) -> Void> {
-        var task: RepeatedTask?
-        
-        return context.eventLoop.makeSucceededFuture({ event in
-            task?.cancel()
-            switch event {
-            case .message(let windowInfo):
-                task = context.startWindowCaptureTask(for: windowInfo)
-            case .end:
-                context.statusPromise.succeed(.ok)
-            }
-        })
+    ) -> EventLoopFuture<GRPCStatus> {
+        task?.cancel()
+        let promise: EventLoopPromise<GRPCStatus> = context.eventLoop.makePromise()
+        task = context.startWindowCaptureTask(for: request)
+        return promise.futureResult
     }
     
 }
@@ -52,6 +47,7 @@ private extension StreamingResponseCallContext where ResponseMessage == MacDB_Wi
     
     private func windowCaptureTask(for windowID: CGWindowID) -> RepeatedTask {
         var previousImage: CGImage?
+        
         func repeatedTask(_ task: RepeatedTask) {
             let image = CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, .boundsIgnoreFraming)
             defer {
@@ -80,7 +76,7 @@ private extension StreamingResponseCallContext where ResponseMessage == MacDB_Wi
         }
         
         return eventLoop.scheduleRepeatedTask(initialDelay: .milliseconds(0),
-                                              delay: .milliseconds(200),
+                                              delay: .milliseconds(100),
                                               repeatedTask)
     }
     
