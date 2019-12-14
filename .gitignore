@@ -1,8 +1,8 @@
 .DS_Store
 .next
-/.build
-/.swiftpm
-/Packages
-/*.xcodeproj
+.build
+.swiftpm
+Packages
+*.xcodeproj
 node_modules/
 xcuserdata/

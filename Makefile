@@ -1,8 +1,8 @@
 MACDB_PROTO=macdb.proto
 CLIENT_PB=$(MACDB_PROTO:.proto=_pb.js)
 CLIENT_GRPC=$(MACDB_PROTO:.proto=_grpc_web_pb.js)
-GRPC_SWIFT_OUT=Sources/macdb/Model/
-GRPC_WEB_OUT=model/
+GRPC_SWIFT_OUT=macdb/Sources/Model/
+GRPC_WEB_OUT=frontend/model/
 PROTOC_GEN_SWIFT=bin/protoc-gen-swift
 PROTOC_GEN_GRPC_SWIFT=bin/protoc-gen-grpc-swift
 PROTOC_GEN_GRPC_WEB=bin/protoc-gen-grpc-web
@@ -37,6 +37,10 @@ generate-client: ${CLIENT_PB} ${CLIENT_GRPC}
 
 .PHONY:
 generate-server: ${SERVER_PB} ${SERVER_GRPC}
+
+.PHONY:
+reset-screen-capture:
+	tccutil reset ScreenCapture
 
 clean:
 	rm -f ${GRPC_WEB_OUT}macdb_grpc_web.js

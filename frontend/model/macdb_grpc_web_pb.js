@@ -141,5 +141,85 @@ proto.MacDB.WindowPromiseClient.prototype.capture =
 };
 
 
+/**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.MacDB.WindowPoint,
+ *   !proto.MacDB.WindowTouch>}
+ */
+const methodDescriptor_Window_Touch = new grpc.web.MethodDescriptor(
+  '/MacDB.Window/Touch',
+  grpc.web.MethodType.UNARY,
+  proto.MacDB.WindowPoint,
+  proto.MacDB.WindowTouch,
+  /**
+   * @param {!proto.MacDB.WindowPoint} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.MacDB.WindowTouch.deserializeBinary
+);
+
+
+/**
+ * @const
+ * @type {!grpc.web.AbstractClientBase.MethodInfo<
+ *   !proto.MacDB.WindowPoint,
+ *   !proto.MacDB.WindowTouch>}
+ */
+const methodInfo_Window_Touch = new grpc.web.AbstractClientBase.MethodInfo(
+  proto.MacDB.WindowTouch,
+  /**
+   * @param {!proto.MacDB.WindowPoint} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.MacDB.WindowTouch.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.MacDB.WindowPoint} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.Error, ?proto.MacDB.WindowTouch)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.MacDB.WindowTouch>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.MacDB.WindowClient.prototype.touch =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/MacDB.Window/Touch',
+      request,
+      metadata || {},
+      methodDescriptor_Window_Touch,
+      callback);
+};
+
+
+/**
+ * @param {!proto.MacDB.WindowPoint} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.MacDB.WindowTouch>}
+ *     A native promise that resolves to the response
+ */
+proto.MacDB.WindowPromiseClient.prototype.touch =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/MacDB.Window/Touch',
+      request,
+      metadata || {},
+      methodDescriptor_Window_Touch);
+};
+
+
 module.exports = proto.MacDB;
 

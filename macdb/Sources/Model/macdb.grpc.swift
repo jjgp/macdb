@@ -30,6 +30,7 @@ import SwiftProtobuf
 /// To build a server, implement a class that conforms to this protocol.
 public protocol MacDB_WindowProvider: CallHandlerProvider {
   func capture(request: MacDB_WindowInfo, context: StreamingResponseCallContext<MacDB_WindowCapture>) -> EventLoopFuture<GRPCStatus>
+  func touch(request: MacDB_WindowPoint, context: StatusOnlyCallContext) -> EventLoopFuture<MacDB_WindowTouch>
 }
 
 extension MacDB_WindowProvider {
@@ -43,6 +44,13 @@ extension MacDB_WindowProvider {
       return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
         return { request in
           self.capture(request: request, context: context)
+        }
+      }
+
+    case "Touch":
+      return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
+        return { request in
+          self.touch(request: request, context: context)
         }
       }
 

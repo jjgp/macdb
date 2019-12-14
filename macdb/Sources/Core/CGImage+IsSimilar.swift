@@ -2,8 +2,8 @@ import Foundation
 
 extension CGImage {
     
-    // Attribution: https://github.com/facebookarchive/ios-snapshot-test-case (FBSnapshotTestCase/Categories/UIImage+Compare.m)
-    public func isSimilar(to other: CGImage, tolerance: CGFloat) -> Bool {
+    /// **Attribution:** *https://github.com/facebookarchive/ios-snapshot-test-case (FBSnapshotTestCase/Categories/UIImage+Compare.m)*
+    public func isSimilar(to other: CGImage, tolerance: CGFloat = .zero) -> Bool {
         guard other.width == width,
             other.height == height else {
                 return false

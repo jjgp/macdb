@@ -1,7 +1,7 @@
-import Foundation
 import GRPC
-import MacDBModel
+import Model
 import NIO
+import Providers
 
 let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 defer {

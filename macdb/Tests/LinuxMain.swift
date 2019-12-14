@@ -1,7 +1,7 @@
 import XCTest
 
-import macdbTests
+import ProviderTests
 
 var tests = [XCTestCaseEntry]()
-tests += macdbTests.allTests()
+tests += WindowProviderTests.allTests()
 XCTMain(tests)

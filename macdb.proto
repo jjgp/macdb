@@ -4,12 +4,21 @@ package MacDB;
 
 service Window {
     rpc Capture (WindowInfo) returns (stream WindowCapture) {}
+    rpc Touch (WindowPoint) returns (WindowTouch) {}
+}
+
+message WindowCapture {
+    string image = 1;
 }
 
 message WindowInfo {
     string name = 1;
 }
 
-message WindowCapture {
-    string image = 1;
+message WindowPoint {
+    WindowInfo windowInfo = 1;
+    int32 x = 2;
+    int32 y = 3;
 }
+
+message WindowTouch {}

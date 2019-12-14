@@ -1,60 +1,65 @@
 import Core
 import Foundation
 import GRPC
-import MacDBModel
+import Model
 import NIO
 
-class WindowProvider: MacDB_WindowProvider {
+public class WindowProvider: MacDB_WindowProvider {
     
-    var task: RepeatedTask?
+    public init() {}
+    
+}
+
+// MARK:- Capture
+
+public extension WindowProvider {
     
     func capture(
         request: MacDB_WindowInfo,
         context: StreamingResponseCallContext<MacDB_WindowCapture>
     ) -> EventLoopFuture<GRPCStatus> {
-        task?.cancel()
-        let promise: EventLoopPromise<GRPCStatus> = context.eventLoop.makePromise()
-        task = context.startWindowCaptureTask(for: request)
-        return promise.futureResult
+        return context.startWindowCaptureTask(for: request)
     }
     
 }
 
 private extension StreamingResponseCallContext where ResponseMessage == MacDB_WindowCapture {
     
-    func startWindowCaptureTask(for windowInfo: MacDB_WindowInfo) -> RepeatedTask? {
+    // TODO: refactor out the acquisition of the window so that the x, y of the bounds may be used to send a tap event
+    func startWindowCaptureTask(for windowInfo: MacDB_WindowInfo) -> EventLoopFuture<GRPCStatus> {
         // TODO: documnenting comment on these guards!
         guard let windowInfoList = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) as? [[CFString: Any]],
             windowInfoList.count > 0 else {
-                statusPromise.fail(GRPCStatus.processingError)
-                return nil
+                return eventLoop.makeFailedFuture(GRPCStatus.processingError)
         }
         
         guard windowInfoList.first!.keys.contains(kCGWindowName) else {
-            statusPromise.fail(GRPCStatus.processingError)
-            return nil
+            // TODO: Trigger prompt
+            let firstID = windowInfoList.first![kCGWindowNumber] as? CGWindowID ?? 0
+            CGWindowListCreateImage(.null, .optionIncludingWindow, firstID, [.boundsIgnoreFraming, .nominalResolution])
+            return eventLoop.makeFailedFuture(GRPCStatus.processingError)
         }
         
         guard let windowID = windowInfoList
             .first(where: { $0[kCGWindowName] as? String == windowInfo.name })
             .flatMap({ $0[kCGWindowNumber] as? CGWindowID }) else {
-                statusPromise.fail(GRPCStatus.processingError)
-                return nil
+                return eventLoop.makeFailedFuture(GRPCStatus.processingError)
         }
         
         return windowCaptureTask(for: windowID)
     }
     
-    private func windowCaptureTask(for windowID: CGWindowID) -> RepeatedTask {
+    private func windowCaptureTask(for windowID: CGWindowID) -> EventLoopFuture<GRPCStatus> {
         var previousImage: CGImage?
+        let promise: EventLoopPromise<GRPCStatus> = eventLoop.makePromise()
         
         func repeatedTask(_ task: RepeatedTask) {
-            let image = CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, .boundsIgnoreFraming)
+            let image = CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, [.boundsIgnoreFraming, .nominalResolution])
             defer {
                 previousImage = image
             }
             // TODO: if it has been similar for a certain period of time fail out!
-            guard previousImage == nil || image?.isSimilar(to: previousImage!, tolerance: 0.001) == false else {
+            guard previousImage == nil || image?.isSimilar(to: previousImage!) == false else {
                 return
             }
             
@@ -71,13 +76,30 @@ private extension StreamingResponseCallContext where ResponseMessage == MacDB_Wi
                     if case ChannelError.ioOnClosedChannel = $0 {
                         task.cancel()
                     }
+                    
+                    promise.fail(GRPCStatus.processingError)
                 }
             }
         }
         
-        return eventLoop.scheduleRepeatedTask(initialDelay: .milliseconds(0),
-                                              delay: .milliseconds(100),
-                                              repeatedTask)
+        eventLoop.scheduleRepeatedTask(initialDelay: .milliseconds(0),
+                                       delay: .milliseconds(25),
+                                       repeatedTask)
+
+        return promise.futureResult
+    }
+    
+}
+
+// MARK:- Touch
+
+public extension WindowProvider {
+    
+    func touch(
+        request: MacDB_WindowPoint,
+        context: StatusOnlyCallContext
+    ) -> EventLoopFuture<MacDB_WindowTouch> {
+        return context.eventLoop.makeSucceededFuture(.init())
     }
     
 }
