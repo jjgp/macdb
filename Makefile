@@ -33,15 +33,21 @@ SERVER_GRPC=$(MACDB_PROTO:.proto=.grpc.swift)
 		--grpc-web_out=import_style=commonjs,mode=grpcwebtext:$(GRPC_WEB_OUT)
 
 .PHONY:
+bootstrap: generate-client generate-server
+	pushd frontend; npm i; popd;
+	pushd macdb; swift package generate-xcodeproj; popd;
+
+.PHONY:
 generate-client: ${CLIENT_PB} ${CLIENT_GRPC}
 
 .PHONY:
 generate-server: ${SERVER_PB} ${SERVER_GRPC}
 
 .PHONY:
-reset-screen-capture:
+reset-screen-capture-permission:
 	tccutil reset ScreenCapture
 
+.PHONY:
 clean:
 	rm -f ${GRPC_WEB_OUT}macdb_grpc_web.js
 	rm -f ${GRPC_WEB_OUT}macdb_pb.js
