@@ -47,3 +47,8 @@ clean:
 	rm -f ${GRPC_WEB_OUT}macdb_pb.js
 	rm -f ${GRPC_SWIFT_OUT}macdb.grpc.swift
 	rm -f ${GRPC_SWIFT_OUT}macdb.pb.swift
+	rm -rf frontend/.next/
+	rm -rf frontend/node_modules/
+	rm -rf macdb/.build/
+	rm -rf macdb/.swiftpm/
+	rm -rf macdb/macdb.xcodeproj/
